@@ -58,23 +58,24 @@ def compute_metrics(G, refresh = True):
 
     descriptTLU = 'TLU--Local Clustering Coefficient'
     descriptDegree = 'Degree Statistics'
+    MAX_NODES_FOR_DENSITY = 4000
 
     if refresh or G.metrics == None:
-
-        #we treat a single node graph to have a density of 1
-        #TODO: This is undefined for multigraphs. Prob should simplify if this happens
-        density = G.density() if G.vcount() > 1 else 1.0
-
         G.metrics = {
                 'Internal Number Nodes'         : G.vcount(),
                 'Internal Number Edges'         : G.ecount(),
-                'Density'                       : density,
                 'Diameter'                      : G.diameter(),
                 'Cohesiveness'                  : G.cohesiveness(),
                 'Triangle Participation Ratio'  : G.triangle_participation_ratio(),
                 'Transitivity Undirected (Global Clustering Coefficient)'
                                                 : G.transitivity_undirected(mode='zero')
                                                 }
+        if G.vcount() < MAX_NODES_FOR_DENSITY:
+             #we treat a single node graph to have a density of 1
+            #TODO: This is undefined for multigraphs. Prob should simplify if this happens
+            density = G.density() if G.vcount() > 1 else 1.0
+            G.metrics['Density'] = density
+            
         G.metrics.update(aggregate(G.transitivity_local_undirected(mode='zero'), prefix=descriptTLU))
         G.metrics.update(aggregate(G.degree(), prefix=descriptDegree))
 
